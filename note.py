@@ -12,7 +12,7 @@ def closest_note(freq):
 
         index = n % 12
 
-        return NOTES[index], 4 + round(n / 12) + (index > 2)
+        return NOTES[index], 4 + int(n / 12) + (index > 2)
     except ValueError:
         print(f'Frequency {freq} fails')
 
