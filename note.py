@@ -28,3 +28,11 @@ def freq_by_note(note, octave):
         n = (octave - 4) * 12 + index
 
     return A * (half_step ** n)
+
+def get_base_freq(name):
+    try:
+        index = NOTES.index(name)
+    except ValueError:
+        raise ValueError(f'{note} is not a valid note')
+
+    return A * (half_step ** index)
