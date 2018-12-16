@@ -8,10 +8,10 @@ import windows
 THRESHOLD = 10
 MISMATCHES = 10
 
-WLEN = 1500
-WOVERLAP = 1000
+WLEN = 1000
+WOVERLAP = 100
 
-test_dir = 'resources/tests/'
+test_dir = 'resources/test_set/'
 test_filename = 'amazing_grace.wav'
 
 srate, data = wavutils.read(test_dir + test_filename)
@@ -25,7 +25,7 @@ spect = list()
 
 while i + WLEN <= slen:
     t = data[i:(i+WLEN)]
-    f = np.fft.fft(t * windows.sinusoidal(WLEN), WLEN)
+    f = np.fft.fft(t * windows.han(WLEN), WLEN)
 
     spect.append(np.abs(f[0:round(WLEN/2)]))
 
@@ -35,13 +35,12 @@ while i + WLEN <= slen:
 freqs = np.fft.fftfreq(WLEN, 1.0/srate)
 freqs = freqs[0:round(len(freqs)/2)]
 
-# plt.imshow(np.transpose(np.fliplr(np.log(spect))), aspect='auto', extent=[0, slen/srate,
-#    0, freqs[len(freqs) - 1]])
+plt.imshow(np.transpose(np.fliplr(np.log(spect))), aspect='auto', extent=[0, slen/srate, 0, freqs[len(freqs) - 1]])
 
-plt.plot(freqs, spect[1])
+# plt.plot(freqs, spect[1])
 
-# plt.xlabel('Time (s)')
-# plt.ylabel('Frequency (Hz)')
+plt.xlabel('Time (s)')
+plt.ylabel('Frequency (Hz)')
 
 base_freqs = list()
 for fbin in spect:
@@ -70,16 +69,15 @@ while i < len(base_freqs):
         counts.append(last_pos - i)
     i = last_pos + 1
 
-print(np.array(base_freqs) * srate/WLEN)
-
 notes = [note.closest_note(freqs[i]) for i in collapsed_freqs]
 
 print(notes)
 
 song = np.array([])
 for i in range(len(notes)):
-    freq = note.freq_by_note(notes[i][0], notes[i][1])
-    song = np.append(song[0:-WOVERLAP], wavgen.sine_wave(freq, counts[i] * WLEN
+    # freq = note.freq_by_note(notes[i][0], notes[i][1])
+    song = np.append(song[0:-(WOVERLAP+1)],
+            wavgen.sine_wave(freqs[collapsed_freqs[i]], counts[i] * WLEN
         - (counts[i] - 1) * WOVERLAP, srate))
 
 wavutils.write('result.wav', srate, song)
