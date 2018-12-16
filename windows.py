@@ -5,3 +5,6 @@ def sinusoidal(wlen, power=2):
 
 def square(wlen):
     return np.ones(wlen)
+
+def han(wlen):
+    return np.array([0.5*(1-np.cos(2*np.pi*x/(wlen-1))) for x in range(wlen)])
