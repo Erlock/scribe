@@ -12,7 +12,7 @@ WLEN = 1000
 WOVERLAP = 100
 
 test_dir = 'resources/test_set/'
-test_filename = 'fur_elise.wav'
+test_filename = 'tetris_theme.wav'
 
 srate, data = wavutils.read(test_dir + test_filename)
 
@@ -79,6 +79,6 @@ for i in range(len(notes)):
             wavgen.sine_wave(freq, counts[i] * WLEN
         - (counts[i] - 1) * WOVERLAP, srate))
 
-wavutils.write('result.wav', srate, song)
+wavutils.write('main_result.wav', srate, song)
 
 plt.show()
