@@ -3,78 +3,82 @@ import numpy as np
 import matplotlib.pyplot as plt
 import note
 import wavgen
-import os
+import windows
 
 THRESHOLD = 5
+MISMATCHES = 5
 
 WLEN = 1000
-WOVERLAP = 10
+WOVERLAP = 100
 
-directory = os.fsencode('resources/test_set/')
+test_dir = 'resources/test_set/'
+test_filename = 'fur_elise.wav'
 
-MAX_TESTS = 2
+srate, data = wavutils.read(test_dir + test_filename)
 
-figure, ax = plt.subplots(min(MAX_TESTS, len(os.listdir(directory))))
+print(f'Testing for: {test_filename}')
 
-test_count = 0
+slen = len(data)
 
-for osfile in os.listdir(directory):
+i = 0
+spect = list()
 
-    if test_count >= MAX_TESTS:
-        break
+while i + WLEN <= slen:
+    t = data[i:(i+WLEN)]
+    f = np.fft.fft(t * windows.han(WLEN), WLEN)
 
-    filename = os.fsdecode(osfile)
+    spect.append(np.abs(f[0:round(WLEN/2)]))
 
-    SRATE, data = wavutils.read(f'resources/test_set/{filename}')
-    print(filename)
+    i += WLEN - WOVERLAP
 
-    SLEN = len(data)
 
-    i = 0
-    spect = list()
-    centres = list()
-    while i + WLEN <= SLEN:
-        t = data[i:(i+WLEN)]
-        f = np.fft.fft(t)
+freqs = np.fft.fftfreq(WLEN, 1.0/srate)
+freqs = freqs[0:round(len(freqs)/2)]
 
-        spect.append(np.abs(f[0:len(f)//2]))
-        centres.append((i + WLEN)/2)
+plt.imshow(np.transpose(np.fliplr(np.log(spect))), aspect='auto', extent=[0, slen/srate, 0, freqs[len(freqs) - 1]])
 
-        i += WLEN - WOVERLAP
 
-    centres = np.array(centres)
+plt.xlabel('Time (s)')
+plt.ylabel('Frequency (Hz)')
 
-    notes = [note.closest_note(np.argmax(f) * SRATE / WLEN) for f in spect if
-            np.argmax(f) > 0]
+base_freqs = list()
+for fbin in spect:
+    base_freqs.append(np.argmax(fbin))
 
-    i = 0
-    collapsed_notes = list()
-    coll_note_count = list()
-    while i < len(notes):
-        j = i + 1
-        while j < len(notes) and (notes[i][0] == notes[j][0]):
-            j += 1;
-        if j - i > THRESHOLD:
-            collapsed_notes.append(notes[i])
-            coll_note_count.append(j-i)
-        i = j
+collapsed_freqs = list()
+counts = list()
 
-    print(collapsed_notes)
+i = 0
+while i < len(base_freqs):
+    j = i + 1
+    mis = 0
+    while j < len(base_freqs) and mis < MISMATCHES:
+        if base_freqs[i] == base_freqs[j]:
+            mis = 0
+        else:
+            mis += 1
+        j += 1
+    
+    last_pos = j
+    if mis >= MISMATCHES:
+        last_pos = j - mis - 1
 
-    song = np.array([])
+    if last_pos - i > THRESHOLD:
+        collapsed_freqs.append(base_freqs[i])
+        counts.append(last_pos - i)
+    i = last_pos + 1
 
-    for i in range(len(collapsed_notes)):
-        freq = note.freq_by_note(collapsed_notes[i][0], collapsed_notes[i][1])
-        song = np.append(song, wavgen.sine_wave(freq, coll_note_count[i] * WLEN, SRATE))
+notes = [note.closest_note(freqs[i]) for i in collapsed_freqs]
 
-    name = filename.split('.')
+print(notes)
 
-    wavutils.write(f'resources/results/{name[0]}_result.wav', SRATE, song)
+song = np.array([])
+for i in range(len(notes)):
+    freq = note.freq_by_note(notes[i][0], notes[i][1])
+    song = np.append(song[0:-(WOVERLAP+1)],
+            wavgen.sine_wave(freq, counts[i] * WLEN
+        - (counts[i] - 1) * WOVERLAP, srate))
 
-    ax[test_count].imshow(np.flipud(np.swapaxes(np.log(np.array(spect)), 0, 1)), aspect="auto", extent=[0,
-        centres[len(centres)-1], 0, SRATE//2])
-    ax[test_count].set_title(name[0])
-
-    test_count += 1
+wavutils.write('result.wav', srate, song)
 
 plt.show()
