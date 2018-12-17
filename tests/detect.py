@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import note
 import wavgen
 import windows
+import time_domain
 
 THRESHOLD = 5
 MISMATCHES = 5
@@ -34,7 +35,10 @@ i = 0
 spect = list()
 freqs = list()
 
-for start,end in CHUNKS:
+filtered_data = time_domain.filter_signal(data)
+chunks = time_domain.get_onsets(filtered_data, srate, 200)
+
+for start,end in chunks:
     start = int(start * srate)
     end = int(end * srate)
     t = data[start:(end + 1)]
