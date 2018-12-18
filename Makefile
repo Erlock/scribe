@@ -4,6 +4,9 @@ run:
 test:
 	pipenv run python3 tests/detect.py
 
+c6:
+	pipenv run python3 tests/spectral_analysis.py
+
 onset:
 	pipenv run python3 tests/time_domain.py
 
