@@ -5,6 +5,8 @@ import note
 import wavgen
 import windows
 import time_domain
+import sys
+import spectral_analysis
 
 
 def detect_notes(data, srate):
@@ -13,7 +15,7 @@ def detect_notes(data, srate):
     freqs = list()
 
     filtered_data = time_domain.filter_signal(data)
-    chunks = time_domain.get_onsets(filtered_data, srate, 80)
+    chunks = time_domain.get_onsets(filtered_data, srate, 1000)
 
     for start,end in chunks:
         t = data[start:(end + 1)]
@@ -27,7 +29,8 @@ def detect_notes(data, srate):
 
     base_freqs = list()
     for i in range(len(spect)):
-        base_freqs.append(freqs[i][np.argmax(spect[i])])
+        detected_indices = spectral_analysis.get_list_of_note_indices(spect[i])
+        base_freqs.append(freqs[i][detected_indices[0]])
 
     notes = [note.closest_note(i) for i in base_freqs]
 
@@ -48,8 +51,13 @@ def write_song(filename, srate, notes, chunks):
 
 if __name__ == '__main__':
 
+    args = sys.argv
+
     test_dir = 'resources/test_set/'
-    test_filename = 'wrecking_ball.wav'
+    test_filename = 'te_deum.wav'
+
+    if len(args) > 1:
+        test_filename = args[1]
 
     srate, data = wavutils.read(test_dir + test_filename)
 
