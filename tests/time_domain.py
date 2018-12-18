@@ -21,7 +21,7 @@ def get_onsets(data, srate, c=2):
                 empties = 0
             j += 1
         if empties > c and data[i] != 0:
-            onsets.append((i / srate, (j - c + 1) / srate))
+            onsets.append((i, (j - c + 1)))
         while j < len(data) and data[j] == 0:
             j += 1
         i = j
@@ -32,7 +32,7 @@ def get_onsets(data, srate, c=2):
 if __name__ == '__main__':
 
     test_dir = 'resources/test_set/'
-    test_filename = 'amazing_grace.wav'
+    test_filename = 'wrecking_ball.wav'
 
     srate, data = wavutils.read(test_dir + test_filename)
 

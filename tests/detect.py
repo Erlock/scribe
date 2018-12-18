@@ -6,24 +6,8 @@ import wavgen
 import windows
 import time_domain
 
-THRESHOLD = 5
-MISMATCHES = 5
-
-CHUNKS = [
-        ( 0.020,  0.363), ( 0.413,  0.765), ( 0.809,  1.165),
-        ( 1.208,  1.564), ( 1.610,  1.963), ( 2.009,  2.361),
-        ( 2.411,  2.762), ( 2.809,  3.159), ( 3.210,  4.362),
-        ( 4.408,  4.759), ( 4.805,  5.161), ( 5.208,  5.561),
-        ( 5.607,  6.764), ( 6.808,  7.162), ( 7.211,  7.560),
-        ( 7.608,  7.959), ( 8.010,  9.160), ( 9.207,  9.561),
-        ( 9.608,  9.964), (10.009, 10.362), (10.409, 10.762),
-        (10.808, 11.164), (11.210, 11.562), (11.609, 11.961),
-        (12.009, 12.264), (12.408, 12.760), (12.809, 13.961),
-        (14.008, 14.384)
-        ]
-
 test_dir = 'resources/test_set/'
-test_filename = 'fur_elise.wav'
+test_filename = 'wrecking_ball.wav'
 
 srate, data = wavutils.read(test_dir + test_filename)
 
@@ -36,11 +20,9 @@ spect = list()
 freqs = list()
 
 filtered_data = time_domain.filter_signal(data)
-chunks = time_domain.get_onsets(filtered_data, srate, 200)
+chunks = time_domain.get_onsets(filtered_data, srate, 80)
 
 for start,end in chunks:
-    start = int(start * srate)
-    end = int(end * srate)
     t = data[start:(end + 1)]
     wlen = end - start + 1
     f = np.fft.fft(t * windows.han(wlen), wlen)
@@ -62,10 +44,9 @@ song = np.array([])
 prev_chunk = (0.0, 0.0)
 for i in range(len(notes)):
     freq = note.freq_by_note(notes[i][0], notes[i][1])
-    song = np.append(song, np.zeros(round(CHUNKS[i][0] - prev_chunk[1])*
-        srate))
-    song = np.append(song, wavgen.sine_wave(freq, round((CHUNKS[i][1] -
-        CHUNKS[i][0]) * srate), srate))
-    prev_chunk = CHUNKS[i]
+    song = np.append(song, np.zeros(round(chunks[i][0] - prev_chunk[1])))
+    song = np.append(song, wavgen.sine_wave(freq, round(chunks[i][1] -
+        chunks[i][0]), srate))
+    prev_chunk = chunks[i]
 
 wavutils.write('result.wav', srate, song)
