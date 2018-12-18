@@ -2,7 +2,7 @@ run:
 	pipenv run python3 main.py
 
 test:
-	pipenv run python3 tests/detect.py
+	pipenv run python3 tests/detect.py ${input}
 
 c6:
 	pipenv run python3 tests/spectral_analysis.py ${input}
