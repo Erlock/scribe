@@ -3,7 +3,15 @@ import matplotlib.pyplot as plt
 import detect
 import scipy.io.wavfile as wavutils
 import windows
+import note
 import sys
+
+def get_list_of_note_indices(freq_bin, threshold=2e6):
+    indices = list()
+    for i in range(len(freq_bin)):
+        if freq_bin[i] > threshold:
+            indices.append(i)
+    return indices
 
 if __name__ == '__main__':
     args = sys.argv
