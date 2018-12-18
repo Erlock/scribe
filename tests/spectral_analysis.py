@@ -3,12 +3,15 @@ import matplotlib.pyplot as plt
 import detect
 import scipy.io.wavfile as wavutils
 import windows
+import sys
 
 if __name__ == '__main__':
+    args = sys.argv
+    assert(len(args) == 2)
     test_dir = 'resources/test_set/'
-    test_filename = 'wrecking_ball.wav'
+    test_filename = 'tetris_theme.wav'
 
-    srate, data = wavutils.read(test_dir + test_filename)
+    srate, data = wavutils.read(test_dir + args[1])
 
     notes, chunks = detect.detect_notes(data, srate)
 
@@ -17,15 +20,21 @@ if __name__ == '__main__':
         if notes[i] == ("C", 6):
             start = chunks[i][0]
             end = chunks[i][1]
+            break;
 
 
-    t = data[start:(end + 1)]
-    wlen = end - start + 1
-    f = np.fft.fft(t * windows.han(wlen), wlen)
-    f = np.abs(f[0:round(wlen/2)])
-    freq_spect = np.fft.fftfreq(wlen, 1.0/srate)
-    freq_spect = freq_spect[0:round(len(freq_spect)/2)]
+    if end > 0:
 
-    plt.plot(freq_spect, f)
-    plt.show()
+	    t = data[start:(end + 1)]
+	    wlen = end - start + 1
+	    f = np.fft.fft(t * windows.han(wlen), wlen)
+	    f = np.abs(f[0:round(wlen/2)])
+	    freq_spect = np.fft.fftfreq(wlen, 1.0/srate)
+	    freq_spect = freq_spect[0:round(len(freq_spect)/2)]
+
+	    plt.plot(freq_spect, f)
+	    plt.show()
+
+    else:
+        print('No C6 found')
 
