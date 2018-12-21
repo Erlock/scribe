@@ -6,11 +6,11 @@ import windows
 import note
 import sys
 
-def get_list_of_note_indices(freq_bin, threshold=2e6):
+def get_list_of_note_indices(freq_bin, threshold=2.5e5):
     indices = list()
-    for i in range(len(freq_bin)):
-        if freq_bin[i] > threshold:
-            indices.append(i)
+    for i in range(len(freq_bin) - 1):
+        if freq_bin[i + 1] > threshold:
+            indices.append(i + 1)
     return indices
 
 if __name__ == '__main__':
