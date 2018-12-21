@@ -29,7 +29,8 @@ def detect_notes(data, srate):
 
     base_freqs = list()
     for i in range(len(spect)):
-        detected_indices = spectral_analysis.get_list_of_note_indices(spect[i])
+        detected_indices = spectral_analysis.get_list_of_note_indices(spect[i],
+                0.4 * np.max(spect[i]))
         base_freqs.append(freqs[i][detected_indices[0]])
 
     notes = [note.closest_note(i) for i in base_freqs]
