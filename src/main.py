@@ -21,12 +21,13 @@ if __name__ == "__main__":
         output_dir = args[2]
 
     for filename in os.listdir(input_dir):
-        print_separator()
-        print(f'Detecting notes for {filename}:')
+        if filename.endswith('.wav'):
+            print_separator()
+            print(f'Detecting notes for {filename}:')
 
-        srate, data = wavutils.read(input_dir + filename)
+            srate, data = wavutils.read(input_dir + filename)
 
-        notes, chunks = detect.detect_notes(data, srate)
-        print(notes)
-        detect.write_song(output_dir + filename, srate, notes, chunks)
+            notes, chunks = detect.detect_notes(data, srate)
+            print(notes)
+            detect.write_song(output_dir + filename, srate, notes, chunks)
     print_separator()
