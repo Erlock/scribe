@@ -6,6 +6,7 @@ half_step = 2**(1.0/12)
 
 NOTES = ["A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"]
 
+
 def closest_note(freq):
     try:
         n = round(math.log(freq / A, half_step))
@@ -15,6 +16,7 @@ def closest_note(freq):
         return NOTES[index], 4 + int(n / 12) + (index > 2)
     except ValueError:
         print(f'Frequency {freq} fails')
+
 
 def freq_by_note(note, octave):
     try:
@@ -29,10 +31,11 @@ def freq_by_note(note, octave):
 
     return A * (half_step ** n)
 
+
 def get_base_freq(name):
     try:
         index = NOTES.index(name)
     except ValueError:
-        raise ValueError(f'{note} is not a valid note')
+        raise ValueError(f'{name} is not a valid note')
 
     return A * (half_step ** index)

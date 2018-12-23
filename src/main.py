@@ -1,29 +1,30 @@
 import os
-import sys, getopt
+import sys
 import detect
 import scipy.io.wavfile as wavutils
 
+
 def print_separator():
-    print('-------------------------------')
+    print("-------------------------------")
 
 
 if __name__ == "__main__":
     args = sys.argv
 
-    input_dir = 'resources/test_set/'
-    output_dir = 'results/'
+    input_dir = "resources/test_set/"
+    output_dir = "results/"
 
     if len(args) == 2 or len(args) > 4:
-        print('Usage: make run <input_dir> <output_dir>')
+        print("Usage: make run <input_dir> <output_dir>")
         quit()
     if len(args) == 3:
         input_dir = args[1]
         output_dir = args[2]
 
     for filename in os.listdir(input_dir):
-        if filename.endswith('.wav'):
+        if filename.endswith(".wav"):
             print_separator()
-            print(f'Detecting notes for {filename}:')
+            print(f"Detecting notes for {filename}:")
 
             srate, data = wavutils.read(input_dir + filename)
 

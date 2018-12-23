@@ -2,11 +2,13 @@ import scipy.io.wavfile as wavutils
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def filter_signal(data, threshold=250):
     cpdata = np.copy(data)
     cpdata.setflags(write=True)
-    cpdata[np.logical_and((cpdata<= threshold), (cpdata>=-threshold))] = 0
+    cpdata[np.logical_and((cpdata <= threshold), (cpdata >= -threshold))] = 0
     return cpdata
+
 
 def get_onsets(data, srate, c=2):
     i = 0
@@ -33,18 +35,17 @@ def get_onsets(data, srate, c=2):
     return onsets
 
 
+if __name__ == "__main__":
 
-if __name__ == '__main__':
-
-    test_dir = 'resources/test_set/'
-    test_filename = 'te_deum.wav'
+    test_dir = "resources/test_set/"
+    test_filename = "te_deum.wav"
 
     srate, data = wavutils.read(test_dir + test_filename)
 
     figure, ax = plt.subplots(2)
     ax[0].plot(data)
 
-    print(f'Starting onset detection for {test_filename}')
+    print(f"Starting onset detection for {test_filename}")
     filtered_data = filter_signal(data)
     chunks = get_onsets(filtered_data, srate, 1000)
 
@@ -60,20 +61,3 @@ if __name__ == '__main__':
 
     ax[1].plot(cpdata)
     plt.show()
-    #slen = len(data)
-
-    #fig, ax = plt.subplots(3)
-
-    #ax[0].plot(data)
-    #ax[2].plot(data - np.roll(data, 20))
-
-    #threshold = np.average(data[data>=0])
-    #maxm = np.max(data)
-
-    #data.setflags(write=True)
-    #data[data < 0.75*maxm] = 0
-    #data.setflags(write=False)
-
-
-    #ax[1].plot(data)
-    #plt.show()
