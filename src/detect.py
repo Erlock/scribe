@@ -43,7 +43,7 @@ def write_song(filename, srate, notes, chunks):
         freq = note.freq_by_note(notes[i][0], notes[i][1])
         song = np.append(song, np.zeros(round(chunks[i][0] - prev_chunk[1])))
         wav = wavgen.sine_wave(freq, round(chunks[i][1] - chunks[i][0], srate))
-        song = np.append(song, wavgen.sine_wave(freq, wav))
+        song = np.append(song, wav)
         prev_chunk = chunks[i]
 
     wavutils.write(filename, srate, song)
