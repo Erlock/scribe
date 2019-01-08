@@ -4,8 +4,8 @@ run:
 test:
 	pipenv run python3 src/detect.py ${input}
 
-c6:
-	pipenv run python3 src/spectral_analysis.py ${input}
+plot-note:
+	pipenv run python3 src/spectral_analysis.py ${input} ${note} ${octave}
 
 onset:
 	pipenv run python3 src/time_domain.py
