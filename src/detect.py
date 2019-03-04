@@ -42,7 +42,7 @@ def detect_notes(data, srate, plot_notes=False, threshold=250, min_length=0.):
             detected_freq = freqs[i][detected_indices[0]]
             plt.annotate(f'Maximum amplitude: {detected_freq} ({note.closest_note(detected_freq)})', xy=(detected_freq, detected_amp), xytext=(detected_freq, detected_amp))
             # plt.show()
-            plt.savefig(f'Note {i}', bbox_inxhes='tight')
+            plt.savefig(f'img/Note {i}', bbox_inxhes='tight')
 
         base_freqs.append(freqs[i][detected_indices[0]])
 
@@ -82,4 +82,4 @@ if __name__ == '__main__':
 
     print(notes)
 
-    write_song(f'result_{test_filename}', srate, notes, chunks)
+    write_song(f'results/test/result_{test_filename}', srate, notes, chunks)
