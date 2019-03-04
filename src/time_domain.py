@@ -10,7 +10,7 @@ def filter_signal(data, threshold=250):
     return cpdata
 
 
-def get_onsets(data, srate, c=2):
+def get_onsets(data, srate, c=2, min_length=0.0):
     i = 0
     onsets = list()
     while i < len(data):
@@ -28,9 +28,11 @@ def get_onsets(data, srate, c=2):
             j += 1
         if data[i] != 0:
             if empties > c:
-                onsets.append((i, (j - c)))
+                if (j - c - i) / srate > min_length:
+                    onsets.append((i, (j - c)))
             elif j >= len(data):
-                onsets.append((i, len(data) - 1))
+                if (len(data) - 1 - i) / srate > min_length:
+                    onsets.append((i, len(data) - 1))
         i = j
     return onsets
 
