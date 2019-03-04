@@ -6,15 +6,16 @@ import windows
 import time_domain
 import sys
 import spectral_analysis as speclyze
+import matplotlib.pyplot as plt
 
 
-def detect_notes(data, srate):
+def detect_notes(data, srate, plot_notes=False, threshold=250, min_length=0.):
     i = 0
     spect = list()
     freqs = list()
 
-    filtered_data = time_domain.filter_signal(data)
-    chunks = time_domain.get_onsets(filtered_data, srate, 1000)
+    filtered_data = time_domain.filter_signal(data, threshold=threshold)
+    chunks = time_domain.get_onsets(filtered_data, srate, c=1000, min_length=.1)
 
     for start, end in chunks:
         t = data[start:(end + 1)]
@@ -27,8 +28,22 @@ def detect_notes(data, srate):
 
     base_freqs = list()
     for i in range(len(spect)):
-        detected_indices = speclyze.get_list_of_note_indices(spect[i], 0.4 *
+        detected_indices = speclyze.get_list_of_note_indices(spect[i], .4 *
                                                              np.max(spect[i]))
+        if plot_notes:
+            start, end = chunks[i]
+            plt.figure(i)
+            plt.plot(freqs[i], spect[i])
+            plt.title(f'Note from {start / srate} to {end / srate} (s)')
+            plt.xlabel('Frequency (Hz)')
+            plt.ylabel('Amplitude')
+            plt.savefig(f'Note {i}')
+            detected_amp = spect[i][detected_indices[0]]
+            detected_freq = freqs[i][detected_indices[0]]
+            plt.annotate(f'Maximum amplitude: {detected_freq} ({note.closest_note(detected_freq)})', xy=(detected_freq, detected_amp), xytext=(detected_freq, detected_amp))
+            # plt.show()
+            plt.savefig(f'Note {i}', bbox_inxhes='tight')
+
         base_freqs.append(freqs[i][detected_indices[0]])
 
     notes = [note.closest_note(i) for i in base_freqs]
@@ -54,7 +69,7 @@ if __name__ == '__main__':
     args = sys.argv
 
     test_dir = 'resources/test_set/'
-    test_filename = 'te_deum.wav'
+    test_filename = 'do_i_wanna_know_separated.wav'
 
     if len(args) > 1:
         test_filename = args[1]
@@ -63,6 +78,8 @@ if __name__ == '__main__':
 
     print(f'Testing for: {test_filename}')
 
-    notes, chunks = detect_notes(data, srate)
+    notes, chunks = detect_notes(data, srate, plot_notes=True)
+
+    print(notes)
 
     write_song(f'result_{test_filename}', srate, notes, chunks)
