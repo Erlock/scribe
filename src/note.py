@@ -32,6 +32,13 @@ def freq_by_note(note, octave):
     return A * (half_step ** n)
 
 
+def generate_harmonics(note, octave):
+    harmonics = []
+    for i in range(octave, octave + 5):
+        harmonics.append((note, i))
+
+    return harmonics
+
 def get_base_freq(name):
     try:
         index = NOTES.index(name)
