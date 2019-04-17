@@ -7,9 +7,10 @@ import time_domain
 import sys
 import spectral_analysis as speclyze
 import matplotlib.pyplot as plt
+import os
 
 
-def detect_notes(data, srate, plot_notes=False, threshold=250, min_length=0.):
+def detect_notes(data, srate, plot_notes=False, folder=None, threshold=250, min_length=0.):
     i = 0
     spect = list()
     freqs = list()
@@ -26,10 +27,10 @@ def detect_notes(data, srate, plot_notes=False, threshold=250, min_length=0.):
         freq_spect = np.fft.fftfreq(wlen, 1.0/srate)
         freqs.append(freq_spect[0:round(len(freq_spect)/2)])
 
-    base_freqs = list()
+    notes = list()
     for i in range(len(spect)):
-        detected_indices = speclyze.get_list_of_note_indices(spect[i], .4 *
-                                                             np.max(spect[i]))
+        detected_note, detected_freq, detected_amp, score = \
+            speclyze.get_base_frequency(zip(freqs[i], spect[i]), threshold=.2 * np.max(spect[i]))
         if plot_notes:
             start, end = chunks[i]
             plt.figure(i)
@@ -37,16 +38,20 @@ def detect_notes(data, srate, plot_notes=False, threshold=250, min_length=0.):
             plt.title(f'Note from {start / srate} to {end / srate} (s)')
             plt.xlabel('Frequency (Hz)')
             plt.ylabel('Amplitude')
-            plt.savefig(f'Note {i}')
-            detected_amp = spect[i][detected_indices[0]]
-            detected_freq = freqs[i][detected_indices[0]]
-            plt.annotate(f'Maximum amplitude: {detected_freq} ({note.closest_note(detected_freq)})', xy=(detected_freq, detected_amp), xytext=(detected_freq, detected_amp))
+            # plt.savefig(f'Note {i}')
+            plt.annotate(f'Maximum amplitude: {detected_freq} ({detected_note})\nScore: {score}', xy=(detected_freq, detected_amp), xytext=(detected_freq, detected_amp))
             # plt.show()
-            plt.savefig(f'img/Note {i}', bbox_inxhes='tight')
+            if folder is not None:
+                if not os.path.exists(f'img/{folder}'):
+                    os.makedirs(f'img/{folder}')
+                plt.savefig(f'img/{folder}/Note {i}', bbox_inxhes='tight')
+            else:
+                plt.savefig(f'img/Note {i}', bbox_inxhes='tight')
 
-        base_freqs.append(freqs[i][detected_indices[0]])
+    #     base_freqs.append(freqs[i][detected_indices[0]])
+        notes.append(detected_note)
 
-    notes = [note.closest_note(i) for i in base_freqs]
+    # notes = [note.closest_note(i) for i in base_freqs]
 
     return notes, chunks
 
@@ -69,7 +74,7 @@ if __name__ == '__main__':
     args = sys.argv
 
     test_dir = 'resources/test_set/'
-    test_filename = 'do_i_wanna_know_separated.wav'
+    test_filename = 'do_i_wanna_know.wav'
 
     if len(args) > 1:
         test_filename = args[1]
@@ -78,7 +83,7 @@ if __name__ == '__main__':
 
     print(f'Testing for: {test_filename}')
 
-    notes, chunks = detect_notes(data, srate, plot_notes=True)
+    notes, chunks = detect_notes(data, srate, plot_notes=True, folder='do_i_wanna_know')
 
     print(notes)
 
