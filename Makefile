@@ -12,3 +12,9 @@ onset:
 
 test-env:
 	pipenv run python3 tests/test.py
+
+naive:
+	pipenv run python3 src/max_no_detect.py $(ARGS)
+
+test-naive:
+	pipenv run python3 tests/naive.py

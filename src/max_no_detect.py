@@ -1,9 +1,12 @@
 import scipy.io.wavfile as wavutils
 import numpy as np
 import matplotlib.pyplot as plt
-import note
-import wavgen
-import windows
+import src.note as note
+import src.wavgen as wavgen
+import src.windows as windows
+
+import argparse
+import os.path
 
 THRESHOLD = 5
 MISMATCHES = 5
@@ -11,80 +14,93 @@ MISMATCHES = 5
 WLEN = 1000
 WOVERLAP = 100
 
-test_dir = "resources/test_set/"
-test_filename = "tetris_theme.wav"
 
-srate, data = wavutils.read(test_dir + test_filename)
+def transcribe(filepath, wlen=1447, woverlap=100, threshold=100, mismatches=1, plot=False, write=False):
+    filename = os.path.basename(filepath)
 
-print(f"Testing for: {test_filename}")
+    srate, data = wavutils.read(filepath)
 
-slen = len(data)
+    # print(f"Testing for: {filename}")
 
-i = 0
-spect = list()
+    slen = len(data)
 
-while i + WLEN <= slen:
-    t = data[i: (i + WLEN)]
-    f = np.fft.fft(t * windows.han(WLEN), WLEN)
+    i = 0
+    spect = list()
 
-    spect.append(np.abs(f[0: round(WLEN / 2)]))
+    while i + wlen <= slen:
+        t = data[i: (i + wlen)]
+        f = np.fft.fft(t * windows.han(wlen), wlen)
+        spect.append(np.abs(f[0: int(wlen / 2)]))
 
-    i += WLEN - WOVERLAP
-
-
-freqs = np.fft.fftfreq(WLEN, 1.0 / srate)
-freqs = freqs[0: round(len(freqs) / 2)]
-
-plt.imshow(
-    np.transpose(np.fliplr(np.log(spect))),
-    aspect="auto",
-    extent=[0, slen / srate, 0, freqs[len(freqs) - 1]],
-)
+        i += wlen - woverlap
 
 
-plt.xlabel("Time (s)")
-plt.ylabel("Frequency (Hz)")
+    freqs = np.fft.fftfreq(wlen, 1.0 / srate)
+    freqs = freqs[0: round(len(freqs) / 2)]
 
-base_freqs = list()
-for fbin in spect:
-    base_freqs.append(np.argmax(fbin))
 
-collapsed_freqs = list()
-counts = list()
+    base_freqs = list()
+    for fbin in spect:
+        base_freqs.append(np.argmax(fbin))
 
-i = 0
-while i < len(base_freqs):
-    j = i + 1
-    mis = 0
-    while j < len(base_freqs) and mis < MISMATCHES:
-        if base_freqs[i] == base_freqs[j]:
-            mis = 0
-        else:
-            mis += 1
-        j += 1
+    collapsed_freqs = list()
+    counts = list()
 
-    last_pos = j
-    if mis >= MISMATCHES:
-        last_pos = j - mis - 1
+    i = 0
+    while i < len(base_freqs):
+        j = i + 1
+        mis = 0
+        while j < len(base_freqs) and mis < mismatches:
+            if base_freqs[i] == base_freqs[j]:
+                mis = 0
+            else:
+                mis += 1
+            j += 1
 
-    if last_pos - i > THRESHOLD:
-        collapsed_freqs.append(base_freqs[i])
-        counts.append(last_pos - i)
-    i = last_pos + 1
+        last_pos = j
+        if mis >= mismatches:
+            last_pos = j - mis - 1
 
-notes = [note.closest_note(freqs[i]) for i in collapsed_freqs]
+        if 1000 * wlen * (last_pos - i) / srate > threshold:
+            collapsed_freqs.append(base_freqs[i])
+            counts.append(last_pos - i)
+        i = last_pos + 1
 
-print(notes)
+    notes = [note.closest_note(freqs[i]) for i in collapsed_freqs]
 
-song = np.array([])
-for i in range(len(notes)):
-    freq = note.freq_by_note(notes[i][0], notes[i][1])
-    song = np.append(
-        song[0: -(WOVERLAP + 1)],
-        wavgen.sine_wave(freq, counts[i] * WLEN -
-                         (counts[i] - 1) * WOVERLAP, srate),
-    )
+    if write:
+        song = np.array([])
+        for i in range(len(notes)):
+            freq = note.freq_by_note(notes[i][0], notes[i][1])
+            song = np.append(
+                song[0: -(woverlap + 1)],
+                wavgen.sine_wave(freq, counts[i] * wlen -
+                                (counts[i] - 1) * woverlap, srate),
+            )
 
-wavutils.write("main_result.wav", srate, song)
+        wavutils.write(f"results/fixed/{filename}", srate, song)
 
-plt.show()
+    if plot:
+        plt.imshow(
+            np.transpose(np.fliplr(np.log(spect))),
+            aspect="auto",
+            extent=[0, slen / srate, 0, freqs[len(freqs) - 1]],
+        )
+
+
+        plt.xlabel("Time (s)")
+        plt.ylabel("Frequency (Hz)")
+        plt.show()
+
+    return notes
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input', default='resources/test_set/tetris_theme.wav')
+    parser.add_argument('--woverlap', type=int, default=100)
+    parser.add_argument('--wlen', type=int, default=1447)
+    parser.add_argument('--mismatches', type=int, default=1)
+    parser.add_argument('--threshold', type=int, default=100)
+    args = parser.parse_args()
+
+    transcribe(args.input, args.wlen, args.woverlap, args.threshold, args.mismatches, plot=True, write=True)

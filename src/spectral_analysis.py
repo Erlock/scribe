@@ -8,11 +8,25 @@ import sys
 
 
 def get_list_of_note_indices(freq_bin, threshold=2.5e5):
-    indices = list()
-    for i in range(len(freq_bin) - 1):
-        if freq_bin[i + 1] > threshold:
-            indices.append(i + 1)
-    return indices
+    pitches = dict()
+
+    for freq, amp in freq_bin:
+        p = note.closest_note(freq)
+        pitches[p] = pitches.get(p, 0) + amp
+
+    for pitch, amp in pitches:
+        if amp < threshold:
+            pitches.pop(pitch)
+
+    result = list(pitches.keys())[0]
+
+    return result, note.freq_by_note(note), pitches[amp], 0.
+
+    # indices = list()
+    # for i in range(len(freq_bin) - 1):
+    #     if freq_bin[i + 1] > threshold:
+    #         indices.append(i + 1)
+    # return indices
 
 def get_base_frequency(freq_bin, threshold=2.5e5):
 
@@ -45,12 +59,14 @@ def get_base_frequency(freq_bin, threshold=2.5e5):
         harmonics = note.generate_harmonics(base_candidate, octave)
 
         harm_match = 0
+        harm_count = 0
 
         for harm in harmonics:
             if harm in note_bin:
                 harm_match += weights[harm]
+                harm_count += 1
 
-        spect_match = harm_match / len(note_bin)
+        spect_match = harm_count / len(note_bin)
         harm_match = harm_match / total_energy
         score = spect_match * harm_match
 
